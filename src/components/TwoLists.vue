@@ -55,7 +55,7 @@
       <draggable 
       :disabled="drag" class="list-group list-group-horizontal" :list="list2" group="people" @change="log">
         <div
-         v-bind:style="{fontSize: lafont+'px', padding: lepadding+'px'}"
+         v-bind:style="{color:lacouleur,fontSize: lafont+'px', padding: lepadding+'px'}"
           class="list-group-item"
           v-for="(element) in list2"
           :key="element.id"
@@ -195,15 +195,32 @@ export default {
      if (localStorage.bonus) {
       this.bonus = localStorage.bonus;
     }
+     if (localStorage.contexte) {
+      this.contexte = localStorage.contexte;
+    }
+     if (localStorage.contexteindexe) {
+      this.contexteindexe = localStorage.contexteindexe;
+    }
+    // y a t il un contexte en cours ?
+if (this.contexte=="false"){
   this.indexeverbe=metier.getIndexeVerbe(this.selected,this.selectednombrelettres);
+  //console.log("contexte=false"+this.indexeverbe);
+  this.tentes++;
+  this.contexte="true";
+  this.contexteindexe=this.indexeverbe;}
+  else{
+  //console.log("contexte=true"+this.contexteindexe);
+  this.indexeverbe=this.contexteindexe;
+  }
   if (this.indexeverbe==99999){
+      this.contexte="false";
       this.gagneperdu="changez de niveau ou augmentez le nombre de lettres ou réinitialisez";
       }else{
   this.verbeclair=metier.getVerbefromIndex(this.indexeverbe);
   this.list1=metier.verbToJson(metier.mixLettresVerbe(this.verbeclair));
   this.pointsencours=metier.getPointsfromIndex(this.indexeverbe,this.selected);
   this.bonusencours=metier.getBonusfromIndex(this.indexeverbe,this.selected);
-  this.tentes++;
+  
   this.gagneperdu="";
   this.verbetrouve=false;
   if (this.bonus<=0){
@@ -218,11 +235,14 @@ export default {
  //document.getElementById('setletters').clientHeight=document.getElementById('givenletters').clientHeight;
   },
   updated(){
-      if (this.first==0){
+   /*   if (this.first==0){
       this.lahauteur=document.getElementById('givenletters').clientHeight;
       //this.lahauteur=this.lahauteur+100;
       this.first=1;
-      }
+      }*/
+      if (this.list1.length>0){
+        this.lahauteur=document.getElementById('givenletters').clientHeight;}
+
    //confirm("hauteur"+document.getElementById('givenletters').clientHeight);
    // this.lahauteur=this.hauteursauvee;
 
@@ -253,6 +273,7 @@ export default {
     lahauteur:100,
     //seul utilisé ci-dessous
     lafont:36,
+    lacouleur:'#000000',
     //fin sélecteurs css
       verbeclair:'', 
       indexeverbe:'',
@@ -274,6 +295,8 @@ export default {
       boutonlangocha:false,
       drag:false,
       solution:"Donner sa langue au chat",
+      contexte:"false",
+      contexteindexe:0,
       niveaux: [
       { text: 'Facile', value: '5' },
       { text: 'Moins Facile', value: '4' },
@@ -319,6 +342,12 @@ export default {
     },
      bonus(nouvelleselection) {
       localStorage.bonus = nouvelleselection;
+    },
+    contexte(nouvelleselection){
+      localStorage.contexte=nouvelleselection;
+    },
+    contexteindexe(nouvelleselection){
+       localStorage.contexteindexe=nouvelleselection;
     }
   },
   methods: {
@@ -360,7 +389,9 @@ export default {
         this.boutonphrase=true;
         this.boutonlettresdonnees=true;
         this.boutonlangocha=true;
+        this.contexte="false";
         localStorage.removeItem("already");
+        localStorage.clear();
 
     },
     langocha:function(){
@@ -414,6 +445,8 @@ export default {
      if (this.indexeverbe==99999){
       this.gagneperdu="changez de niveau ou augmentez le nombre de lettres ou réinitialisez";
       }else{
+    this.contexte="true";
+    this.contexteindexe=this.indexeverbe;
     this.verbeclair=metier.getVerbefromIndex(this.indexeverbe);
   // console.log("tojson"+metier.verbToJson(metier.mixLettresVerbe(this.verbeclair)));
     this.list1=metier.verbToJson(metier.mixLettresVerbe(this.verbeclair));
@@ -447,6 +480,7 @@ export default {
    //  window.console.log("niveau"+niveau.selectedIndex);
       if (this.list2.length<this.verbeclair.length){
         this.gagneperdu="manque des lettres !";
+        this.lacouleur='#000000';
         return;
       }
       var egal=true;
@@ -462,7 +496,9 @@ export default {
          this.bonus=parseInt(this.bonus)+parseInt(this.bonusencours);
          this.points=parseInt(this.points)+parseInt(this.pointsencours);
          this.gagneperdu="GAGNE";
+         this.contexte="false";
          this.verbetrouve=true;
+         this.lacouleur='#FF0000';
          this.boutonsens = this.bonus<=0?true:false;
          this.sens=metier.getSensFromIndex(this.indexeverbe);
          this.phrase=metier.getPhraseFromIndex(this.indexeverbe);
@@ -477,6 +513,7 @@ export default {
         // est-ce que le verbe trouvé existe en fait dans le fichier ?
           if (metier.isVerbExistInFile(verbetrouveenclair)==true){
               this.gagneperdu="GAGNE, ce verbe existe mais ce n'est pas celui demandé,continuez "
+              this.lacouleur='#00FF00';
               this.trouves++;
               this.bonus=parseInt(this.bonus)+parseInt(this.bonusencours);
               this.points=parseInt(this.points)+parseInt(this.pointsencours);
@@ -485,6 +522,7 @@ export default {
               this.phrase="";
             }
             else{
+            this.lacouleur='#000000';
             this.gagneperdu="PERDU";
             this.verbetrouve=false;
           }
